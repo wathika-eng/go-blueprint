@@ -1,5 +1,8 @@
 Custome Gin + Postgres (pgx) template
 
+```go
+go run main.go  create
+```
 <!-- ![logo](./public/logo.png)
 
 <div style="text-align: center;">

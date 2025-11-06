@@ -52,6 +52,13 @@ func New() (Service, error) {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 
+		// config, err := pgxpool.ParseConfig(connStr)
+		// if err != nil {
+		// 	initErr = fmt.Errorf("error parsing connection string: %v", err.Error())
+		// 	return
+		// }
+		// config.MaxConns = int32(runtime.NumCPU())
+
 		pool, err := pgxpool.New(ctx, connStr)
 		if err != nil {
 			initErr = fmt.Errorf("failed to connect to DB: %w", err)

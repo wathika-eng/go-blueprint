@@ -1,4 +1,6 @@
-![logo](./public/logo.png)
+Custome Gin + Postgres (pgx) template
+
+<!-- ![logo](./public/logo.png)
 
 <div style="text-align: center;">
   <h1>
@@ -248,4 +250,4 @@ go-blueprint create --name my-project --framework chi --driver mysql --advanced 
   License
 </h2>
 
-Licensed under [MIT License](./LICENSE)
+Licensed under [MIT License](./LICENSE) -->

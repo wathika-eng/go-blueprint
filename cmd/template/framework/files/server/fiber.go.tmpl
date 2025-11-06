@@ -14,16 +14,20 @@ type FiberServer struct {
   {{end}}
 }
 
-func New() *FiberServer {
+func New() (*FiberServer, error) {
 	server := &FiberServer{
 		App: fiber.New(fiber.Config{
 		ServerHeader:            "{{.ProjectName}}",
 		AppName:                 "{{.ProjectName}}",
 	}),
+	db, err := database.New()
+	if err != nil {
+		return nil, err
+	}
   {{if ne .DBDriver "none"}}
-		db:  database.New(),
+		db: db,
   {{end}}
 	}
 
-	return server
+	return server, nil
 }

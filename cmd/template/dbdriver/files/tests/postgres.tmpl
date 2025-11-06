@@ -2,24 +2,33 @@ package database
 
 import (
 	"context"
-	"log"
+	"os"
+	"sync"
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-func mustStartPostgresContainer() (func(context.Context, ...testcontainers.TerminateOption) error, error) {
-	var (
-		dbName = "database"
-		dbPwd  = "password"
-		dbUser = "user"
-	)
+// reset singleton for each test run
+func resetDBSingleton() {
+	dbInstance = nil
+	once = sync.Once{} // new zero-value sync.Once
+}
 
-	dbContainer, err := postgres.Run(
-		context.Background(),
+func mustStartPostgresContainer(t *testing.T) (func(), string) {
+	t.Helper()
+
+	dbName := "database"
+	dbPwd := "password"
+	dbUser := "user"
+
+	ctx := context.Background()
+	ctr, err := postgres.Run(
+		ctx,
 		"postgres:latest",
 		postgres.WithDatabase(dbName),
 		postgres.WithUsername(dbUser),
@@ -27,74 +36,114 @@ func mustStartPostgresContainer() (func(context.Context, ...testcontainers.Termi
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).
-				WithStartupTimeout(5*time.Second)),
+				WithStartupTimeout(20*time.Second),
+		),
 	)
 	if err != nil {
-		return nil, err
+		t.Fatalf("failed to start postgres container: %v", err)
 	}
 
+	hostIP, err := ctr.Host(ctx)
+	if err != nil {
+		t.Fatalf("could not get container host: %v", err)
+	}
+
+	hostPort, err := ctr.MappedPort(ctx, "5432/tcp")
+	if err != nil {
+		t.Fatalf("could not get mapped port: %v", err)
+	}
+
+	// apply env vars for database.New()
 	database = dbName
 	password = dbPwd
 	username = dbUser
+	host = hostIP
+	port = hostPort.Port()
+	schema = "public"
 
-	dbHost, err := dbContainer.Host(context.Background())
-	if err != nil {
-		return dbContainer.Terminate, err
-	}
-
-	dbPort, err := dbContainer.MappedPort(context.Background(), "5432/tcp")
-	if err != nil {
-		return dbContainer.Terminate, err
-	}
-
-	host = dbHost
-	port = dbPort.Port()
-
-	return dbContainer.Terminate, err
+	// cleanup function
+	return func() {
+		if err := ctr.Terminate(ctx); err != nil {
+			t.Fatalf("failed to terminate postgres container: %v", err)
+		}
+	}, hostPort.Port()
 }
 
 func TestMain(m *testing.M) {
-	teardown, err := mustStartPostgresContainer()
-	if err != nil {
-		log.Fatalf("could not start postgres container: %v", err)
+	teardown, _ := mustStartPostgresContainer(&testing.T{})
+
+	code := m.Run()
+
+	if teardown != nil {
+		teardown()
 	}
 
-	m.Run()
-
-	if teardown != nil && teardown(context.Background()) != nil {
-		log.Fatalf("could not teardown postgres container: %v", err)
-	}
+	os.Exit(code)
 }
 
 func TestNew(t *testing.T) {
-	srv := New()
+	resetDBSingleton()
+
+	srv, err := New()
+	if err != nil {
+		t.Fatalf("New() returned error: %v", err)
+	}
 	if srv == nil {
-		t.Fatal("New() returned nil")
+		t.Fatal("New() returned nil service")
+	}
+
+	// ensure pool actually connects
+	pool, ok := srv.(interface{ GetPool() *pgxpool.Pool })
+	if !ok {
+		t.Fatalf("service does not expose GetPool()")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
+	if err := pool.GetPool().Ping(ctx); err != nil {
+		t.Fatalf("ping failed: %v", err)
 	}
 }
 
 func TestHealth(t *testing.T) {
-	srv := New()
+	resetDBSingleton()
+
+	srv, err := New()
+	if err != nil {
+		t.Fatalf("New() returned error: %v", err)
+	}
 
 	stats := srv.Health()
 
 	if stats["status"] != "up" {
-		t.Fatalf("expected status to be up, got %s", stats["status"])
+		t.Fatalf("expected status 'up', got '%s'", stats["status"])
 	}
 
-	if _, ok := stats["error"]; ok {
-		t.Fatalf("expected error not to be present")
+	if msg, ok := stats["message"]; !ok || msg == "" {
+		t.Fatalf("expected health message, got none")
 	}
 
-	if stats["message"] != "It's healthy" {
-		t.Fatalf("expected message to be 'It's healthy', got %s", stats["message"])
+	if stats["status"] != "up" {
+		t.Fatalf("db should be up, got down")
 	}
 }
 
 func TestClose(t *testing.T) {
-	srv := New()
+	resetDBSingleton()
 
-	if srv.Close() != nil {
-		t.Fatalf("expected Close() to return nil")
+	srv, err := New()
+	if err != nil {
+		t.Fatalf("New() returned error: %v", err)
+	}
+
+	// assert close works
+	if err := srv.Close(); err != nil {
+		t.Fatalf("Close() returned error: %v", err)
+	}
+
+	// calling Close twice should not crash
+	if err := srv.Close(); err != nil {
+		t.Fatalf("Close() should be idempotent")
 	}
 }

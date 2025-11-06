@@ -14,29 +14,40 @@ import (
 )
 
 type Server struct {
-	port int
+	port string
   {{if ne .DBDriver "none"}}
 	db   database.Service
   {{end}}
 }
 
-func NewServer() *http.Server {
-	port, _ := strconv.Atoi(os.Getenv("PORT"))
+func NewServer() (*http.Server, error) {
+	var port string
+	port = os.Getenv("PORT")
+	// default port if port is not set
+	if port == "" {
+		port = "8080"
+	}
+
+	db, err := database.New()
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize database: %v", err)
+	}
+
 	NewServer := &Server{
 		port: port,
   {{if ne .DBDriver "none"}}
-		db:   database.New(),
+		db:   db,
   {{end}}
 	}
 
 	// Declare Server config
 	server := &http.Server{
-		Addr:         fmt.Sprintf(":%d", NewServer.port),
+		Addr:         fmt.Sprintf(":%v", NewServer.port),
 		Handler:      NewServer.RegisterRoutes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
 
-	return server
+	return server, nil
 }

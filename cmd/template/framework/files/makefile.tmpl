@@ -67,6 +67,10 @@ run:
 docker-run:
 	@if docker compose up --build 2>/dev/null; then \
 		: ; \
+	@if lsopen -t -i TCP:5432 >/dev/null 2>&1; then \
+		echo "Port 5432 is in use. Please close the application using it and try again."; \
+		exit 1; \
+	fi; \
 	else \
 		echo "Falling back to Docker Compose V1"; \
 		docker-compose up --build; \
@@ -76,6 +80,10 @@ docker-run:
 docker-down:
 	@if docker compose down 2>/dev/null; then \
 		: ; \
+	@if lsopen -t -i TCP:5432 >/dev/null 2>&1; then \
+		echo "Port 5432 is in use. Please close the application using it and try again."; \
+		exit 1; \
+	fi; \
 	else \
 		echo "Falling back to Docker Compose V1"; \
 		docker-compose down; \
@@ -96,11 +104,16 @@ test:
 	@echo "Testing..."
 	@go test ./... -v
 
+update-deps:
+	@echo "Updating dependencies..."
+	@go get -u ./...
+	@go mod tidy
+
 {{- if and (ne .DBDriver "none") (ne .DBDriver "sqlite") }}
 # Integrations Tests for the application
 itest:
 	@echo "Running integration tests..."
-	@go test ./internal/database -v
+	@go test ./pkg/database -v
 {{- end }}
 
 # Clean the binary

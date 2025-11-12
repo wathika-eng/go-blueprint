@@ -115,8 +115,8 @@ const (
 	root                 = "/"
 	cmdApiPath           = "cmd/api"
 	cmdWebPath           = "cmd/web"
-	internalServerPath   = "internal/server"
-	internalDatabasePath = "internal/database"
+	internalServerPath   = "pkg/server"
+	internalDatabasePath = "pkg/database"
 	gitHubActionPath     = ".github/workflows"
 )
 

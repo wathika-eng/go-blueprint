@@ -22,9 +22,9 @@ watching cmd/api
 watching cmd/web
 watching cmd/web/assets
 watching cmd/web/assets/js
-watching internal
-watching internal/database
-watching internal/server
+watching pkg
+watching pkg/database
+watching pkg/server
 watching tests
 !exclude tmp
 building...
@@ -36,7 +36,7 @@ Generated code for "/home/ujstor/code/blueprint-version-test/ws-test4/cmd/web/he
 Generated code for 2 templates with 0 errors in 1.274392ms
 make[1]: Leaving directory '/home/ujstor/code/blueprint-version-test/ws-test4'
 running...
-internal/server/routes.go has changed
+pkg/server/routes.go has changed
 building...
 make[1]: Entering directory '/home/ujstor/code/blueprint-version-test/ws-test4'
 Building...

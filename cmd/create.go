@@ -79,7 +79,8 @@ var createCmd = &cobra.Command{
 		var err error
 
 		isInteractive := false
-		flagName := cmd.Flag("name").Value.String()
+		flagName := strings.TrimSpace(cmd.Flag("name").Value.String())
+		flagName = strings.ToLower(flagName)
 
 		if flagName != "" && !utils.ValidateModuleName(flagName) {
 			err = fmt.Errorf("'%s' is not a valid module name. Please choose a different name", flagName)

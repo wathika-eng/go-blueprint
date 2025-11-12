@@ -9,14 +9,14 @@ Created projects can utilize several Go web frameworks to handle HTTP routing an
 
 ## Project Structure
 
-The project is structured with a simple layout, focusing on the cmd, internal, and tests directories:
+The project is structured with a simple layout, focusing on the cmd, ookg, and tests directories:
 
 ```bash
 /(Root)
 ├── /cmd
 │   └── /api
 │       └── main.go
-├── /internal
+├── /pkg
 │   └── /server
 │       ├── routes.go
 │       ├── routes_test.go

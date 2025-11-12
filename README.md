@@ -1,4 +1,12 @@
-Custome Gin + Postgres (pgx) template
+Custome Gin/Fiber + Postgres (pgx) template
+
+To get started, run the following command:
+
+```go
+
+git clone 
+
+```
 
 ```go
 go run main.go  create

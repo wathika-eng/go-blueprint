@@ -2,8 +2,9 @@ package server
 
 import (
 	"github.com/gofiber/fiber/v2"
+	
   {{if ne .DBDriver "none"}}
-	"{{.ProjectName}}/internal/database"
+	"{{.ProjectName}}/pkg/database"
   {{end}}
 )
 
@@ -17,17 +18,37 @@ type FiberServer struct {
 func New() (*FiberServer, error) {
 	server := &FiberServer{
 		App: fiber.New(fiber.Config{
-		ServerHeader:            "{{.ProjectName}}",
-		AppName:                 "{{.ProjectName}}",
-	}),
+			ServerHeader:            "{{.ProjectName}}",
+			AppName:                 "{{.ProjectName}}",
+			ErrorHandler: func(c *fiber.Ctx, err error) error {
+				// Status code defaults to 500
+				code := fiber.StatusInternalServerError
+
+				// Retrieve the custom status code if it's a *fiber.Error
+				var e *fiber.Error
+				if errors.As(err, &e) {
+					code = e.Code
+				}
+
+				// Set Content-Type: application/json; charset=utf-8
+				c.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSONCharsetUTF8)
+
+				// Return status code with error message
+				return c.Status(code).JSON(fiber.Map{
+					"success": false,
+					"error":   err.Error(),
+				})
+			},
+		})}
+
 	db, err := database.New()
 	if err != nil {
 		return nil, err
 	}
+
   {{if ne .DBDriver "none"}}
-		db: db,
+  		server.db = db
   {{end}}
-	}
 
 	return server, nil
 }

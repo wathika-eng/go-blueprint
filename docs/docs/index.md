@@ -70,7 +70,7 @@ Here's an overview of the project structure created by Go Blueprint when all opt
 │   ├── tsconfig.json             # Root TypeScript configuration.
 │   ├── tsconfig.node.json        # TypeScript configuration for Node.js.
 │   └── vite.config.ts            # Vite configuration file.
-├── internal/
+├── pkg/
 │   ├── database/
 │   │   ├── database_test.go      # File containing integration tests for the database operations.
 │   │   └── database.go           # File containing functions related to database operations.

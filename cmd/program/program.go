@@ -651,6 +651,31 @@ func (p *Project) CreateMainFile() error {
 		return err
 	}
 
+	// Copy .env to .env.example
+	envFilePath := filepath.Join(projectPath, ".env")
+	envExampleFilePath := filepath.Join(projectPath, ".env.example")
+	err = utils.CopyFile(envFilePath, envExampleFilePath)
+	if err != nil {
+		log.Printf("Error copying .env to .env.example: %v", err)
+		return err
+	}
+
+	// create sqlc.yaml file if postgres is selected
+	if p.DBDriver == flags.Postgres {
+		sqlcFile, err := os.Create(filepath.Join(projectPath, "sqlc.yaml"))
+		if err != nil {
+			return err
+		}
+		defer sqlcFile.Close()
+
+		// inject sqlc.yaml template
+		sqlcTemplate := template.Must(template.New("sqlc").Parse(string(framework.SQLCTemplate())))
+		err = sqlcTemplate.Execute(sqlcFile, p)
+		if err != nil {
+			return err
+		}
+	}
+
 	// Create gitignore
 	gitignoreFile, err := os.Create(filepath.Join(projectPath, ".gitignore"))
 	if err != nil {

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"github.com/gofiber/fiber/v2"
 	
   {{if ne .DBDriver "none"}}
@@ -13,6 +14,8 @@ type FiberServer struct {
   {{if ne .DBDriver "none"}}
 	db database.Service
   {{end}}
+  // uncomment this line to include repository
+  // repo *repository.Queries
 }
 
 func New() (*FiberServer, error) {
@@ -45,6 +48,9 @@ func New() (*FiberServer, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// uncomment this line to include repository
+	// server.repo = repository.New(db.GetPool())
 
   {{if ne .DBDriver "none"}}
   		server.db = db

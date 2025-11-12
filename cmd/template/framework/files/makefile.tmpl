@@ -109,6 +109,15 @@ update-deps:
 	@go get -u ./...
 	@go mod tidy
 
+lint:
+	@echo "Linting Go files..."
+	@go fmt ./...
+	@golangci-lint run ./...
+
+migrate:
+	@echo "Running migrations..."
+	dbmate up
+
 {{- if and (ne .DBDriver "none") (ne .DBDriver "sqlite") }}
 # Integrations Tests for the application
 itest:

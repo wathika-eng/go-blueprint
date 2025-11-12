@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -54,8 +53,13 @@ func main() {
 	done := make(chan bool, 1)
 
 	go func() {
-		port, _ := strconv.Atoi(os.Getenv("PORT"))
-		err := server.Listen(fmt.Sprintf(":%d", port))
+		var port string
+		port = os.Getenv("PORT")
+		// default port if port is not set
+		if port == "" {
+			port = "8000"
+		}
+		err := server.Listen(fmt.Sprintf(":%s", port))
 		if err != nil {
 			panic(fmt.Sprintf("http server error: %s", err))
 		}

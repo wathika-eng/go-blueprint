@@ -21,6 +21,9 @@ var makeTemplate []byte
 //go:embed files/gitignore.tmpl
 var gitIgnoreTemplate []byte
 
+//go:embed files/sqlc_env.tmpl
+var sqlcTemplate []byte
+
 // MakeTemplate returns a byte slice that represents
 // the default Makefile template.
 func MakeTemplate() []byte {
@@ -39,4 +42,9 @@ func AirTomlTemplate() []byte {
 // the default README.md file template.
 func ReadmeTemplate() []byte {
 	return readmeTemplate
+}
+
+// sqlc template
+func SQLCTemplate() []byte {
+	return sqlcTemplate
 }

@@ -1,16 +1,28 @@
-Custome Gin/Fiber + Postgres (pgx) template
+# Custom Gin/Fiber + Postgres (pgx) template
+
+*under development*
 
 To get started, run the following command:
 
-```go
+```bash
+git clone https://github.com/wathika-eng/go-blueprint --depth 1
 
-git clone 
+cd go-blueprint
 
-```
-
-```go
+go mod tidy
 go run main.go  create
+
+# or
+
+npm install -g dbmate # install dbmate
+
+curl -sS https://webi.sh/sqlc | sh; \
+source ~/.config/envman/PATH.env # install sqlc
+
 ```
+
+Sample project created:
+![project](image-1.png)
 <!-- ![logo](./public/logo.png)
 
 <div style="text-align: center;">
